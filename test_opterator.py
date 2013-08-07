@@ -178,7 +178,7 @@ A script with one optional option.
 Options:
   -h, --help            show this help message and exit
   -m MYOPTION, --mine=MYOPTION
-                        the myoption helptext"""
+                        the myoption helptext (default: novalue)"""
 
 
 def test_short_option_only():
@@ -250,7 +250,7 @@ A script with one optional option.
 Options:
   -h, --help            show this help message and exit
   -m MYOPTION, --myoption=MYOPTION
-                        the myoption helptext"""
+                        the myoption helptext (default: novalue)"""
 
 
 def test_keyword_option_no_identifier_docstring():
@@ -281,7 +281,8 @@ A script with one optional option, but no parameter in docstring.
 
 Options:
   -h, --help            show this help message and exit
-  -m MYOPTION, --myoption=MYOPTION"""
+  -m MYOPTION, --myoption=MYOPTION
+                        (default: novalue)"""
 
 
 def test_keyword_list_option():
@@ -399,6 +400,54 @@ def test_two_kw_options():
     assert result.secondoption == True
 
 
+def test_two_kw_options_same_first_letter():
+    result = Checker()
+
+    @opterate
+    def main(myoption=False, mysecondoption=False):
+        '''A script with two optional values.
+        :param myoption: the myoption helptext
+        :param secondoption: the second helptext'''
+        result.myoption = myoption
+        result.mysecondoption = mysecondoption
+
+    main(['-m', '-y'])
+    assert result.myoption == True
+    assert result.mysecondoption == True
+
+
+def test_kw_options_no_letters_left():
+    result = Checker()
+
+    @opterate
+    def main(m_opt=False, y_opt=False, my=False):
+        '''A script with three optional values, no short option left for last
+        value.
+        :param m_opt: the m_opt helptext
+        :param y_opt: the y_opt helptext
+        :param my: the my helptext'''
+        result.m_opt = m_opt
+        result.y_opt = y_opt
+        result.my = my
+
+    capture = py.io.StdCapture()
+    py.test.raises(SystemExit, main, ['-h'])
+    out, error = capture.reset()
+    print(out)
+
+    assert error == ''
+    assert out.strip() == '''Usage: py.test [options]
+
+A script with three optional values, no short option left for last
+        value.
+
+Options:
+  -h, --help   show this help message and exit
+  -m, --m_opt  the m_opt helptext
+  -y, --y_opt  the y_opt helptext
+  --my         the my helptext'''
+
+
 def test_comprehensive_example():
     result = Checker()
 
@@ -447,7 +496,7 @@ Options:
   -r, --recursive       copy directories recursively
   -i, --interactive     prompt before overwrite
   -S SUFFIX, --suffix=SUFFIX
-                        override the usual backup suffix'''
+                        override the usual backup suffix (default: ~)'''
 
     main(['source', 'dest'])
     assert result.filename1 == 'source'

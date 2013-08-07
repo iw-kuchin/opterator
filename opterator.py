@@ -87,6 +87,7 @@ def opterate(func):
     usage += "\n\n%s" % usage_text
 
     option_names = []
+    short_options = []
     parser = OptionParser(usage)
     for variable_name in kw_params:
         option_strings = []
@@ -94,7 +95,11 @@ def opterate(func):
         option_names.append(variable_name)
         if not param_args or not param_args[0].startswith('-'):
             option_strings.append('--' + variable_name)
-            option_strings.append('-' + variable_name[0])
+            for letter in variable_name:
+                if letter not in short_options:
+                    option_strings.append('-' + letter)
+                    short_options.append(letter)
+                    break
         while param_args and param_args[0].startswith('-'):
             option_strings.append(param_args.pop(0))
         help_text = ' '.join(param_args)
@@ -116,6 +121,11 @@ def opterate(func):
             action = 'append'
         else:
             action = 'store'
+            suffix = "(default: %s)" % default
+            if help_text:
+                help_text += " " + suffix
+            else:
+                help_text = suffix
 
         parser.add_option(action=action, default=default, help=help_text,
                 dest=variable_name, *option_strings)
